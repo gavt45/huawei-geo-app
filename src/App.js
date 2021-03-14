@@ -18,14 +18,16 @@ import {
 } from "react-native-sensors";
 
 
-setUpdateIntervalForType(SensorTypes.accelerometer, 1000); // defaults to 100ms
+setUpdateIntervalForType(SensorTypes.accelerometer, 1); // defaults to 100ms
 setUpdateIntervalForType(SensorTypes.magnetometer, 1000); // defaults to 100ms
 
 const Drawer = createDrawerNavigator();
 
-async function subscribeToServices() {
-    console.log("BG service is working!");
-    const subscription = accelerometer.subscribe(({ x, y, z, timestamp }) =>
+function storeData(sensorStorage, x, y, z, timestamp){
+    // console.log("sensor storage: ", sensorStorage.length);
+    sensorStorage = [...sensorStorage,{timestamp, x,y,z}];
+    if (sensorStorage.length >= 250){
+        console.log("sending data: ", sensorStorage);
         fetch('http://192.168.1.62:8000/', {
             method: 'POST',
             headers: {
@@ -33,13 +35,25 @@ async function subscribeToServices() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                type: "accelerometer",
-                timestamp: timestamp,
-                x:x,
-                y:y,
-                z:z
+                type: 'accelerometer',
+                measurements: sensorStorage
             })
         })
+        return [];
+    }
+    return sensorStorage;
+}
+
+async function subscribeToServices() {
+    console.log("BG service is working!");
+    var sensorStorage = {
+        accel: [],
+        magnetometer: []
+    };
+    const subscription = accelerometer.subscribe(({ x, y, z, timestamp }) =>
+        {
+            sensorStorage.accel = storeData(sensorStorage.accel, x, y, z, timestamp);
+        }
     );
 
     const magnSubscription = magnetometer.subscribe(({ x, y, z, timestamp }) =>
