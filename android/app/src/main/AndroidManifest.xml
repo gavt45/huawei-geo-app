@@ -20,6 +20,10 @@
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+
+  <!-- Permissions needed to run foreground service -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
   <!-- END OPTIONAL PERMISSIONS -->
   <application
     android:name=".MainApplication"
@@ -29,6 +33,17 @@
     android:allowBackup="false"
     android:theme="@style/AppTheme"
   >
+    <!-- inside application -->
+
+    <meta-data android:name="com.zinspector.foregroundservice.notification_channel_name"
+               android:value="zInspector Service"/>
+    <meta-data  android:name="com.zinspector.foregroundservice.notification_channel_description"
+                android:value="zInspector Service."/>
+    <meta-data  android:name="com.zinspector.foregroundservice.notification_color"
+                android:resource="@color/orange"/>
+
+    <service android:name="com.zinspector.foregroundservice.ForegroundService"></service>
+    <service android:name="com.zinspector.foregroundservice.ForegroundServiceTask"></service>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="YOUR-APP-URL-HERE"/>
     <meta-data android:name="expo.modules.updates.EXPO_SDK_VERSION" android:value="YOUR-APP-SDK-VERSION-HERE"/>
     <activity
