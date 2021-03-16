@@ -1,4 +1,4 @@
-import {Body, Button, Container, Content, Header, Icon, Left, Right, Title} from "native-base";
+import {Body, Button, Container, Content, Header, Icon, Left, Right, Title, Item, Input} from "native-base";
 import {Text, View} from "react-native";
 import React,{useContext} from "react";
 import AppContext from "../../components/AppContext";
@@ -37,9 +37,11 @@ export default function MainScreen({navigation}) {
                         color: '#e3e3e3'
                     }}>Check sensors</Text>
                 </Button>
-
+                <Item regular style={{marginTop: 20}}>
+                    <Input placeholder="http://192.168.1.62:8000/" onChangeText={(text) => {appContext.setUri(text)}} />
+                </Item>
                 <Button full rounded success
-                        style={{marginTop: 10}}
+                        style={{marginTop: 20}}
                         onPress={() => appContext.startFgService(appContext)}>
                     <Text style={{
                         color: '#e3e3e3'

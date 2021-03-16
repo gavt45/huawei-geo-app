@@ -1,7 +1,7 @@
 import {StatusBar} from 'expo-status-bar';
-import React, {Component, useState} from 'react';
+import React, {Component, useContext, useState} from 'react';
 import {Container, Content, Header, Title, Body, Left, Right, Button, Icon} from 'native-base';
-import {StyleSheet, Text, View} from 'react-native';
+import {AsyncStorage, StyleSheet, Text, View} from 'react-native';
 import MainScreen from "./screens/MainScreen/index.js";
 import ExpoTestScreen from "./screens/ExpoTestScreen.js";
 import {NavigationContainer} from "@react-navigation/native";
@@ -18,17 +18,36 @@ import {
 } from "react-native-sensors";
 
 
-setUpdateIntervalForType(SensorTypes.accelerometer, 1); // defaults to 100ms
+setUpdateIntervalForType(SensorTypes.accelerometer, 5); // defaults to 100ms
 setUpdateIntervalForType(SensorTypes.magnetometer, 1000); // defaults to 100ms
 
 const Drawer = createDrawerNavigator();
 
-function storeData(sensorStorage, x, y, z, timestamp){
+async function getUri(){
+    try {
+        const value = await AsyncStorage.getItem('@MySuperStore:server-uri');
+        if (value !== null) {
+            // We have data!!
+            return value;
+        }
+    } catch (error) {
+        console.error("Error fetching data from storage: ",error);
+    }
+    return null;
+}
+
+async function storeData(sensorStorage, x, y, z, timestamp){
     // console.log("sensor storage: ", sensorStorage.length);
+    const URI = await getUri();
+    // console.log("URI in store data: ",URI);
+
+    // console.log("Storage: ", sensorStorage);
     sensorStorage = [...sensorStorage,{timestamp, x,y,z}];
-    if (sensorStorage.length >= 250){
-        console.log("sending data: ", sensorStorage);
-        fetch('http://192.168.1.62:8000/', {
+    // console.log("new sensor storage: ", sensorStorage);
+
+    if (sensorStorage.length >= 100){
+        console.log("sending data!");
+        fetch(URI, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -50,9 +69,10 @@ async function subscribeToServices() {
         accel: [],
         magnetometer: []
     };
-    const subscription = accelerometer.subscribe(({ x, y, z, timestamp }) =>
+    const subscription = accelerometer.subscribe(async ({ x, y, z, timestamp }) =>
         {
-            sensorStorage.accel = storeData(sensorStorage.accel, x, y, z, timestamp);
+            // console.log("Sensor storage in subscription func: ", sensorStorage);
+            sensorStorage.accel = await storeData(sensorStorage.accel, x, y, z, timestamp);
         }
     );
 
@@ -94,11 +114,25 @@ export default class App extends Component {
                 appCtx.fgServiceRunning = false;
             }
         }
+        async function setUri(URI){
+            try {
+                await AsyncStorage.setItem(
+                    '@MySuperStore:server-uri',
+                    URI
+                );
+            } catch (error) {
+                console.error("Error saving data to storage: ",error);
+            }
+        }
+
+        await setUri("http://ass/");
 
         this.appSettings = {
             fgServiceRunning: false,
             fgServiceNotificationConfig: null,
             fgServiceTaskName: "bgSensors",
+            setUri,
+            getUri,
             startFgService,
             stopFgService
         };
