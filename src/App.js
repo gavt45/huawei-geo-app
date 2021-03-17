@@ -18,7 +18,7 @@ import {
 } from "react-native-sensors";
 
 
-setUpdateIntervalForType(SensorTypes.accelerometer, 5); // defaults to 100ms
+setUpdateIntervalForType(SensorTypes.accelerometer, 1); // defaults to 100ms
 setUpdateIntervalForType(SensorTypes.magnetometer, 1000); // defaults to 100ms
 
 const Drawer = createDrawerNavigator();
@@ -41,12 +41,12 @@ async function storeData(sensorStorage, x, y, z, timestamp){
     const URI = await getUri();
     // console.log("URI in store data: ",URI);
 
-    // console.log("Storage: ", sensorStorage);
+    // console.log("Storage: ", sensorStorage;);
     sensorStorage = [...sensorStorage,{timestamp, x,y,z}];
     // console.log("new sensor storage: ", sensorStorage);
 
-    if (sensorStorage.length >= 100){
-        console.log("sending data!");
+    if (sensorStorage.length >= 200){
+        console.log("sending data!",sensorStorage.length);
         fetch(URI, {
             method: 'POST',
             headers: {
@@ -63,27 +63,60 @@ async function storeData(sensorStorage, x, y, z, timestamp){
     return sensorStorage;
 }
 
-async function subscribeToServices() {
+async function startFgService(appCtx) {
+    if (!appCtx.fgServiceRunning) {
+        appCtx.fgServiceRunning = true;
+        await ForegroundService.startService(appCtx.fgServiceNotificationConfig);
+        await ForegroundService.runTask({
+            taskName: appCtx.fgServiceTaskName,
+            delay: 0
+        });
+    }else {
+        console.log("Service is already running!");
+    }
+}
+async function stopFgService(appCtx) {
+    if (appCtx.fgServiceRunning) {
+        console.log("Stopping service!");
+        await ForegroundService.stopService();
+        await ForegroundService.stopServiceAll();
+        appCtx.fgServiceRunning = false;
+    }
+}
+async function setUri(URI){
+    try {
+        await AsyncStorage.setItem(
+            '@MySuperStore:server-uri',
+            URI
+        );
+    } catch (error) {
+        console.error("Error saving data to storage: ",error);
+    }
+}
+
+async function subscribeToServices(appCtx) {
     console.log("BG service is working!");
     var sensorStorage = {
         accel: [],
         magnetometer: []
     };
-    const subscription = accelerometer.subscribe(async ({ x, y, z, timestamp }) =>
+    appCtx.subscription = accelerometer.subscribe(async ({ x, y, z, timestamp }) =>
         {
-            // console.log("Sensor storage in subscription func: ", sensorStorage);
+            // console.log("accel: ", sensorStorage,x,y,z,timestamp);
             sensorStorage.accel = await storeData(sensorStorage.accel, x, y, z, timestamp);
         }
     );
 
-    const magnSubscription = magnetometer.subscribe(({ x, y, z, timestamp }) =>
+    appCtx.magnSubscription = magnetometer.subscribe(({ x, y, z, timestamp }) =>
         console.log("Magnetometer: ", { x, y, z, timestamp })
     )
     console.log("Waiting for service to stop!");
-    while (await ForegroundService.isRunning()){}
+}
+
+function unsubscribe(appCtx){
     console.log("Unsubscribing!");
-    subscription.unsubscribe();
-    magnSubscription.unsubscribe();
+    appCtx.subscription.unsubscribe();
+    appCtx.magnSubscription.unsubscribe();
 }
 
 export default class App extends Component {
@@ -94,37 +127,6 @@ export default class App extends Component {
     }
 
     async componentDidMount() {
-        async function startFgService(appCtx) {
-            if (!appCtx.fgServiceRunning) {
-                appCtx.fgServiceRunning = true;
-                await ForegroundService.startService(appCtx.fgServiceNotificationConfig);
-                await ForegroundService.runTask({
-                    taskName: appCtx.fgServiceTaskName,
-                    delay: 0
-                });
-            }else {
-                console.log("Service is already running!");
-            }
-        }
-        async function stopFgService(appCtx) {
-            if (appCtx.fgServiceRunning) {
-                console.log("Stopping service!");
-                await ForegroundService.stopService();
-                await ForegroundService.stopServiceAll();
-                appCtx.fgServiceRunning = false;
-            }
-        }
-        async function setUri(URI){
-            try {
-                await AsyncStorage.setItem(
-                    '@MySuperStore:server-uri',
-                    URI
-                );
-            } catch (error) {
-                console.error("Error saving data to storage: ",error);
-            }
-        }
-
         await setUri("http://ass/");
 
         this.appSettings = {
@@ -134,7 +136,9 @@ export default class App extends Component {
             setUri,
             getUri,
             startFgService,
-            stopFgService
+            stopFgService,
+            subscribeToServices,
+            unsubscribe
         };
 
         console.log("Set app settings: ", this.appSettings);
