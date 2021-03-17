@@ -34,3 +34,8 @@ def hello_world():
             args=[blob['timestamp'], 0 if jdata['type'] == 'accelerometer' else -1, 'test', blob['x'], blob['y'], blob['z']])
         get_db().commit()
     return 'OK'
+
+@app.route('/secret', methods=['GET'])
+def hello_world1():
+    query_result = query_db("SELECT timestamp,x,y,z FROM MEASUREMENTS;")
+    return f'{query_result}'
