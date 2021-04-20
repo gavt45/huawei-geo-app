@@ -42,7 +42,7 @@ export default function MainScreen({navigation}) {
                 </Item>
                 <Button full rounded success
                         style={{marginTop: 20}}
-                        onPress={() => appContext.startFgService(appContext)}>
+                        onPress={() => appContext.subscribeToServices(appContext)}>
                     <Text style={{
                         color: '#e3e3e3'
                     }}>START bg data collection</Text>
@@ -50,7 +50,7 @@ export default function MainScreen({navigation}) {
 
                 <Button full rounded warning
                         style={{marginTop: 10}}
-                        onPress={() => appContext.stopFgService(appContext)}>
+                        onPress={() => appContext.unsubscribe(appContext)}>
                     <Text style={{
                         color: '#e3e3e3'
                     }}>STOP bg data collection</Text>
