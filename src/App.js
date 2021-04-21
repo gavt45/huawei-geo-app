@@ -7,8 +7,8 @@ import ExpoTestScreen from "./screens/ExpoTestScreen.js";
 import {NavigationContainer} from "@react-navigation/native";
 import {createDrawerNavigator} from "@react-navigation/drawer";
 import ForegroundService from 'react-native-foreground-service';
+import Geolocation from "/Users/taranecvadim/Programming/react/huawei-geo-app/src/components/GpsData.js";
 import AppContext from './components/AppContext';
-import RNLocation from 'react-native-location';
 
 import {
     accelerometer,
@@ -152,57 +152,6 @@ function unsubscribe(appCtx){
     appCtx.magnSubscription.unsubscribe();
 }
 
-RNLocation.configure({
-    distanceFilter: 0
-})
-const permissionHandle = async () => {
-
-    let permission = await RNLocation.checkPermission({
-        ios: 'whenInUse', // or 'always'
-        android: {
-            detail: 'coarse' // or 'fine'
-        }
-    });
-
-    permission = await RNLocation.requestPermission({
-        ios: "whenInUse",
-        android: {
-            detail: "coarse",
-            rationale: {
-                title: "We need to access your location",
-                message: "We use your location to show where you are on the map",
-                buttonPositive: "OK",
-                buttonNegative: "Cancel"
-            }
-        }
-    })
-
-    let location;
-
-    if(!permission) {
-        permission = await RNLocation.requestPermission({
-            ios: "whenInUse",
-            android: {
-                detail: "coarse",
-                rationale: {
-                    title: "We need to access your location",
-                    message: "We use your location to show where you are on the map",
-                    buttonPositive: "OK",
-                    buttonNegative: "Cancel"
-                }
-            }
-        })
-        location = await RNLocation.getLatestLocation({timeout: 100})
-        console.log(location, location.longitude, location.latitude,
-            location.timestamp)
-    } else {
-        location = await RNLocation.getLatestLocation({timeout: 100})
-        console.log(location, location.longitude, location.latitude,
-            location.timestamp)
-    }
-
-}
-
 export default class App extends Component {
     constructor(props) {
         super(props);
@@ -224,7 +173,6 @@ export default class App extends Component {
             stopFgService,
             subscribeToServices,
             unsubscribe,
-            permissionHandle,
         };
 
         console.log("Set app settings: ", this.appSettings);
@@ -259,7 +207,7 @@ export default class App extends Component {
         //     delay: 0
         // });
         this.setState({isLoading: false})
-        this.timerId = setInterval(() => permissionHandle(), 3000);
+        this.timerId = setInterval(() => Geolocation.permissionHandle(), 3000);
     }
     componentWillUnmount() {
         if (this.timerId) {
