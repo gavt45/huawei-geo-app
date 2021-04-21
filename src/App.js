@@ -23,6 +23,37 @@ setUpdateIntervalForType(SensorTypes.magnetometer, 1000); // defaults to 100ms
 
 const Drawer = createDrawerNavigator();
 
+async function startFgService(appCtx) {
+    if (!appCtx.fgServiceRunning) {
+        appCtx.fgServiceRunning = true;
+        await ForegroundService.startService(appCtx.fgServiceNotificationConfig);
+        await ForegroundService.runTask({
+            taskName: appCtx.fgServiceTaskName,
+            delay: 0
+        });
+    }else {
+        console.log("Service is already running!");
+    }
+}
+async function stopFgService(appCtx) {
+    if (appCtx.fgServiceRunning) {
+        console.log("Stopping service!");
+        await ForegroundService.stopService();
+        await ForegroundService.stopServiceAll();
+        appCtx.fgServiceRunning = false;
+    }
+}
+async function setUri(URI){
+    try {
+        await AsyncStorage.setItem(
+            '@MySuperStore:server-uri',
+            URI
+        );
+    } catch (error) {
+        console.error("Error saving data to storage: ",error);
+    }
+}
+
 async function getUri(){
     try {
         const value = await AsyncStorage.getItem('@MySuperStore:server-uri');
@@ -94,37 +125,6 @@ export default class App extends Component {
     }
 
     async componentDidMount() {
-        async function startFgService(appCtx) {
-            if (!appCtx.fgServiceRunning) {
-                appCtx.fgServiceRunning = true;
-                await ForegroundService.startService(appCtx.fgServiceNotificationConfig);
-                await ForegroundService.runTask({
-                    taskName: appCtx.fgServiceTaskName,
-                    delay: 0
-                });
-            }else {
-                console.log("Service is already running!");
-            }
-        }
-        async function stopFgService(appCtx) {
-            if (appCtx.fgServiceRunning) {
-                console.log("Stopping service!");
-                await ForegroundService.stopService();
-                await ForegroundService.stopServiceAll();
-                appCtx.fgServiceRunning = false;
-            }
-        }
-        async function setUri(URI){
-            try {
-                await AsyncStorage.setItem(
-                    '@MySuperStore:server-uri',
-                    URI
-                );
-            } catch (error) {
-                console.error("Error saving data to storage: ",error);
-            }
-        }
-
         await setUri("http://ass/");
 
         this.appSettings = {
