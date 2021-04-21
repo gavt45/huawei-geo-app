@@ -8,6 +8,7 @@ import {NavigationContainer} from "@react-navigation/native";
 import {createDrawerNavigator} from "@react-navigation/drawer";
 import ForegroundService from 'react-native-foreground-service';
 import AppContext from './components/AppContext';
+import RNLocation from 'react-native-location';
 
 import {
     accelerometer,
@@ -16,6 +17,7 @@ import {
     setUpdateIntervalForType,
     SensorTypes
 } from "react-native-sensors";
+
 
 
 setUpdateIntervalForType(SensorTypes.accelerometer, 1); // defaults to 100ms
@@ -150,11 +152,63 @@ function unsubscribe(appCtx){
     appCtx.magnSubscription.unsubscribe();
 }
 
+RNLocation.configure({
+    distanceFilter: 0
+})
+const permissionHandle = async () => {
+
+    let permission = await RNLocation.checkPermission({
+        ios: 'whenInUse', // or 'always'
+        android: {
+            detail: 'coarse' // or 'fine'
+        }
+    });
+
+    permission = await RNLocation.requestPermission({
+        ios: "whenInUse",
+        android: {
+            detail: "coarse",
+            rationale: {
+                title: "We need to access your location",
+                message: "We use your location to show where you are on the map",
+                buttonPositive: "OK",
+                buttonNegative: "Cancel"
+            }
+        }
+    })
+
+    let location;
+
+    if(!permission) {
+        permission = await RNLocation.requestPermission({
+            ios: "whenInUse",
+            android: {
+                detail: "coarse",
+                rationale: {
+                    title: "We need to access your location",
+                    message: "We use your location to show where you are on the map",
+                    buttonPositive: "OK",
+                    buttonNegative: "Cancel"
+                }
+            }
+        })
+        location = await RNLocation.getLatestLocation({timeout: 100})
+        console.log(location, location.longitude, location.latitude,
+            location.timestamp)
+    } else {
+        location = await RNLocation.getLatestLocation({timeout: 100})
+        console.log(location, location.longitude, location.latitude,
+            location.timestamp)
+    }
+
+}
+
 export default class App extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.appSettings = null;
         this.state = { isLoading: true }
+        this.timerId = null;
     }
 
     async componentDidMount() {
@@ -169,7 +223,8 @@ export default class App extends Component {
             startFgService,
             stopFgService,
             subscribeToServices,
-            unsubscribe
+            unsubscribe,
+            permissionHandle,
         };
 
         console.log("Set app settings: ", this.appSettings);
@@ -204,6 +259,12 @@ export default class App extends Component {
         //     delay: 0
         // });
         this.setState({isLoading: false})
+        this.timerId = setInterval(() => permissionHandle(), 3000);
+    }
+    componentWillUnmount() {
+        if (this.timerId) {
+            clearInterval(this.timerId);
+        }
     }
 
     render() {

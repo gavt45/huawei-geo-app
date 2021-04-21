@@ -1,5 +1,5 @@
 import {Body, Button, Container, Content, Header, Icon, Left, Right, Title, Item, Input} from "native-base";
-import {Text, View} from "react-native";
+import {StyleSheet, Text, View} from "react-native";
 import React,{useContext} from "react";
 import AppContext from "../../components/AppContext";
 import {createDrawerNavigator} from "@react-navigation/drawer";
@@ -7,7 +7,6 @@ import {NavigationContainer} from '@react-navigation/native';
 
 export default function MainScreen({navigation}) {
     const appContext = useContext(AppContext);
-
     return (
         <Container>
             <Header>
@@ -55,7 +54,24 @@ export default function MainScreen({navigation}) {
                         color: '#e3e3e3'
                     }}>STOP bg data collection</Text>
                 </Button>
+                <Button full rounded sucess
+                        style={{marginTop: 10}}
+                        onPress={appContext.permissionHandle}>
+                    <Text style={{
+                        color: '#e3e3e3'
+                    }}>Log geoposition</Text>
+                </Button>
+
             </Content>
         </Container>
 );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+});
