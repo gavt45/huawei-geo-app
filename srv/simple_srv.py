@@ -26,7 +26,7 @@ def query_db(query, args=(), one=False):
 
 def export_csv(_id=None, sensors=None):
 	if sensors is not None:
-		sensors = re.findall('[A-Za-z]+', request.args.get('sensors'))
+		sensors = re.findall('[A-Za-z]+', sensors)
 	if _id is not None:
 		_id = ''.join(['\'', _id.replace('\'', ''), '\''])
 	query = f"SELECT {', '.join(['timestamp', 'x', 'y', 'z', ', '.join(sensors)]) if sensors else '*'} FROM MEASUREMENTS{f' WHERE deviceId = {_id}' if _id else ''};"
