@@ -7,8 +7,9 @@ import AccelerometerData from "../components/AccelerometerData.js";
 import BarometerData from "../components/BarometerData.js";
 import MagnetometerData from "../components/MagnetometerData.js";
 import GyroscopeData from "../components/GyroscopeData";
+import GPS from "../components/GpsData";
 
-const sensorCards = [AccelerometerData, BarometerData, MagnetometerData, GyroscopeData];
+const sensorCards = [GPS, AccelerometerData, BarometerData, MagnetometerData, GyroscopeData];
 
 export default function ExpoTestScreen({navigation}) {
     var listItems = sensorCards.map((sensorCard) =>
