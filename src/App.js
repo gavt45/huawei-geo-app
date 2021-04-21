@@ -94,36 +94,36 @@ async function storeData(sensorStorage, x, y, z, timestamp){
     return sensorStorage;
 }
 
-async function startFgService(appCtx) {
-    if (!appCtx.fgServiceRunning) {
-        appCtx.fgServiceRunning = true;
-        await ForegroundService.startService(appCtx.fgServiceNotificationConfig);
-        await ForegroundService.runTask({
-            taskName: appCtx.fgServiceTaskName,
-            delay: 0
-        });
-    }else {
-        console.log("Service is already running!");
-    }
-}
-async function stopFgService(appCtx) {
-    if (appCtx.fgServiceRunning) {
-        console.log("Stopping service!");
-        await ForegroundService.stopService();
-        await ForegroundService.stopServiceAll();
-        appCtx.fgServiceRunning = false;
-    }
-}
-async function setUri(URI){
-    try {
-        await AsyncStorage.setItem(
-            '@MySuperStore:server-uri',
-            URI
-        );
-    } catch (error) {
-        console.error("Error saving data to storage: ",error);
-    }
-}
+// async function startFgService(appCtx) {
+//     if (!appCtx.fgServiceRunning) {
+//         appCtx.fgServiceRunning = true;
+//         await ForegroundService.startService(appCtx.fgServiceNotificationConfig);
+//         await ForegroundService.runTask({
+//             taskName: appCtx.fgServiceTaskName,
+//             delay: 0
+//         });
+//     }else {
+//         console.log("Service is already running!");
+//     }
+// }
+// async function stopFgService(appCtx) {
+//     if (appCtx.fgServiceRunning) {
+//         console.log("Stopping service!");
+//         await ForegroundService.stopService();
+//         await ForegroundService.stopServiceAll();
+//         appCtx.fgServiceRunning = false;
+//     }
+// }
+// async function setUri(URI){
+//     try {
+//         await AsyncStorage.setItem(
+//             '@MySuperStore:server-uri',
+//             URI
+//         );
+//     } catch (error) {
+//         console.error("Error saving data to storage: ",error);
+//     }
+// }
 
 async function subscribeToServices(appCtx) {
     console.log("BG service is working!");
