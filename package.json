@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^12.0.0",
+    "@react-native-community/geolocation": "^2.0.2",
     "@react-navigation/drawer": "^5.12.3",
     "@react-navigation/native": "^5.9.2",
     "@react-navigation/stack": "^5.14.2",
@@ -22,6 +23,7 @@
     "react-dom": "16.13.1",
     "react-native": "0.63.4",
     "react-native-foreground-service": "github:cristianoccazinsp/react-native-foreground-service",
+    "react-native-geolocation-service": "^5.2.0",
     "react-native-gesture-handler": "~1.8.0",
     "react-native-reanimated": "~1.13.0",
     "react-native-safe-area-context": "3.1.9",

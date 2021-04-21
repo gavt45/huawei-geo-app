@@ -3,6 +3,7 @@ import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {Card, CardItem, Body, Button, Content} from 'native-base';
 import {Accelerometer} from 'expo-sensors';
 
+
 export default function AccelerometerData() {
     const [data, setData] = useState({
         x: 0,
