@@ -7,7 +7,7 @@ import ExpoTestScreen from "./screens/ExpoTestScreen.js";
 import {NavigationContainer} from "@react-navigation/native";
 import {createDrawerNavigator} from "@react-navigation/drawer";
 import ForegroundService from 'react-native-foreground-service';
-import Geolocation from "/Users/taranecvadim/Programming/react/huawei-geo-app/src/components/GpsData.js";
+import Geolocation from "./components/GpsData.js";
 import AppContext from './components/AppContext';
 
 import {
