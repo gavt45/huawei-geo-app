@@ -18,7 +18,7 @@ const Geolocation = {
         permission = await RNLocation.requestPermission({
             ios: "whenInUse",
             android: {
-                detail: "coarse",
+                detail: "fine",
                 rationale: {
                     title: "We need to access your location",
                     message: "We use your location to show where you are on the map",
@@ -34,7 +34,7 @@ const Geolocation = {
             permission = await RNLocation.requestPermission({
                 ios: "whenInUse",
                 android: {
-                    detail: "coarse",
+                    detail: "fine",
                     rationale: {
                         title: "We need to access your location",
                         message: "We use your location to show where you are on the map",
