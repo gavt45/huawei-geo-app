@@ -8,14 +8,7 @@ RNLocation.configure({
 const Geolocation = {
     permissionHandle: async () => {
 
-        let permission = await RNLocation.checkPermission({
-            ios: 'whenInUse', // or 'always'
-            android: {
-                detail: 'coarse' // or 'fine'
-            }
-        });
-
-        permission = await RNLocation.requestPermission({
+        let permission = await RNLocation.requestPermission({
             ios: "whenInUse",
             android: {
                 detail: "fine",
