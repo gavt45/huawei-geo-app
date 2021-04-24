@@ -1,10 +1,11 @@
-from flask import Flask,request,g, send_file
+from flask import Flask,request, g, send_file
 import json
 import sqlite3
 import csv
 from datetime import datetime
 import re
 import logging
+
 DATABASE = 'measurements.db'
 
 app = Flask(__name__)
@@ -27,18 +28,30 @@ def query_db(query, args=(), one=False):
 def export_csv(_id=None, sensors=None):
 	if sensors is not None:
 		sensors = re.findall('[A-Za-z]+', sensors)
+		sensors = [''.join(["'", sensor, "'"]) for sensor in sensors]
 	if _id is not None:
-		_id = ''.join(['\'', _id.replace('\'', ''), '\''])
-	query = f"SELECT {', '.join(['timestamp', 'x', 'y', 'z', ', '.join(sensors)]) if sensors else '*'} FROM MEASUREMENTS{f' WHERE deviceId = {_id}' if _id else ''};"
+		_id = re.findall('[A-Za-z0-9]+', _id)
+		_id = [''.join(["'", i, "'"]) for i in _id]
+
+	select = 'timestamp, deviceId, x, y, z, measurements' if sensors else '*'
+	
+	where = ''.join([
+			' WHERE ', 
+			''.join(['deviceId IN (', ', '.join([i for i in _id]), ')']) if _id else '',
+			' AND ' if _id and sensors else '',
+			''.join(['type IN (', ', '.join([sensor for sensor in sensors]), ')']) if sensors else ''
+		]) if _id or sensors else ''
+
+	query = f"SELECT {select} FROM MEASUREMENTS{where};"
 	app.logger.debug(f'Generated query: {query}')
 	cur = get_db().cursor()
 	cur.execute(query)
 	with open(csv_file:='results/latest_output.csv', 'w') as out_csv_file:
 		csv_out = csv.writer(out_csv_file)
 		csv_out.writerow([d[0] for d in cur.description])
-		for result in cursor:
+		for result in cur:
 			csv_out.writerow(result)
-	cursor.close()
+	cur.close()
 	return csv_file
 
 
@@ -55,15 +68,15 @@ def index():
     jdata = json.loads(request.data)
     for blob in jdata['measurements']:
         # print("Pushing ", [blob['timestamp'], 0, 'test', blob['x'], blob['y'], blob['z']])
-        query_db("INSERT INTO MEASUREMENTS (timestamp, type, deviceId, x, y, z) VALUES (?, ?, ?, ?, ?, ?);", 
-            args=[blob['timestamp'], 0 if jdata['type'] == 'accelerometer' else -1, 'test', blob['x'], blob['y'], blob['z']])
+        query_db("INSERT INTO MEASUREMENTS (timestamp, deviceId, type, x, y, z, measurements) VALUES (?, ?, ?, ?, ?, ?);", 
+            args=[blob['timestamp'], jdata['id'], jdata['type'], blob['x'], blob['y'], blob['z'], blob['measure']])
         get_db().commit()
     return 'OK'
 
 
 @app.route('/secret', methods=['GET'])
 def secret():
-    query_result = query_db("SELECT timestamp,x,y,z FROM MEASUREMENTS;")
+    query_result = query_db("SELECT * FROM MEASUREMENTS;")
     return f'{"".join([f"<p>{q}</p>" for q in query_result])}'
 
 
@@ -73,13 +86,13 @@ def download():
 	_id = request.args.get('id')
 	try:
 		csv_file = export_csv(_id, sensors)
+		# return csv_file
 		return send_file(csv_file, as_attachment=True)
 	except sqlite3.OperationalError as e:
-		app.logger.warning(f'Exception {e}!')
-		return f'<h1><p>An error occured while creating the csv file<p></h1>{e}'
+		app.logger.warning(f'Exception {e} during creation query!')
+		return f'<h1><p>An error occured while creating the csv file!<p></h1><h4><p>Exception: {e}!</p></h4>'
 
 
 if __name__ == '__main__':
 	app.logger.setLevel(logging.DEBUG)
-	app.logger.warning('Starting as app!')
 	app.run(debug=True)
