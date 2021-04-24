@@ -46,7 +46,6 @@ def export_csv(_id=None, sensors=None):
 			' AND ' if _id and sensors else '',
 			''.join(['type IN (', ', '.join([sensor for sensor in sensors]), ')']) if sensors else ''
 		]) if _id or sensors else ''
-
 	query = f"SELECT {select} FROM MEASUREMENTS{where};"
 	app.logger.debug(f'Generated query: {query}')
 	cur = get_db().cursor()
@@ -66,8 +65,14 @@ def index():
     jdata = json.loads(request.data)
     for blob in jdata['measurements']:
         # print("Pushing ", [blob['timestamp'], 0, 'test', blob['x'], blob['y'], blob['z']])
-        query_db("INSERT INTO MEASUREMENTS (timestamp, type, deviceId, x, y, z, measurement) VALUES (?, ?, ?, ?, ?, ?);", 
-            args=[blob['timestamp'], jdata['type'], jdata['id'], blob['x'], blob['y'], blob['z'], blob['measurement']])
+        query_db("INSERT INTO MEASUREMENTS (timestamp, type, deviceId, x, y, z, measurement) VALUES (?, ?, ?, ?, ?, ?, ?);", 
+            args=[blob['timestamp'], 
+            jdata['type'], 
+            jdata['deviceId'], 
+            blob['x'] if 'x' in blob else None, 
+            blob['y'] if 'y' in blob else None, 
+            blob['z'] if 'z' in blob else None, 
+            blob['measurement']])
         get_db().commit()
     return 'OK'
 
@@ -75,7 +80,7 @@ def index():
 @app.route('/secret', methods=['GET'])
 def secret():
     query_result = query_db("SELECT * FROM MEASUREMENTS;")
-    return f'{"".join([f"<p>{q}</p>" for q in query_result])}'
+    return f'{"".join([f"<h4><p>{q}</p></h4>" for q in query_result])}'
 
 
 @app.route('/download', methods=['GET'])
