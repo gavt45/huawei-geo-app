@@ -1,4 +1,4 @@
-from flask import Flask,request, g, send_file
+from flask import Flask, request, g, send_file
 import json
 import sqlite3
 import csv
@@ -25,16 +25,21 @@ def query_db(query, args=(), one=False):
     return (rv[0] if rv else None) if one else rv
 
 
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+
 def export_csv(_id=None, sensors=None):
 	if sensors is not None:
 		sensors = re.findall('[A-Za-z]+', sensors)
-		sensors = [''.join(["'", sensor, "'"]) for sensor in sensors]
+		sensors = [''.join(['"', sensor, '"']) for sensor in sensors]
 	if _id is not None:
 		_id = re.findall('[A-Za-z0-9]+', _id)
-		_id = [''.join(["'", i, "'"]) for i in _id]
-
-	select = 'timestamp, deviceId, x, y, z, measurements' if sensors else '*'
-	
+		_id = [''.join(['"', i, '"']) for i in _id]
+	select = 'timestamp, deviceId, x, y, z, measurement' if sensors else '*'
 	where = ''.join([
 			' WHERE ', 
 			''.join(['deviceId IN (', ', '.join([i for i in _id]), ')']) if _id else '',
@@ -55,21 +60,14 @@ def export_csv(_id=None, sensors=None):
 	return csv_file
 
 
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
-
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     # print("data: ", request.data)
     jdata = json.loads(request.data)
     for blob in jdata['measurements']:
         # print("Pushing ", [blob['timestamp'], 0, 'test', blob['x'], blob['y'], blob['z']])
-        query_db("INSERT INTO MEASUREMENTS (timestamp, deviceId, type, x, y, z, measurements) VALUES (?, ?, ?, ?, ?, ?);", 
-            args=[blob['timestamp'], jdata['id'], jdata['type'], blob['x'], blob['y'], blob['z'], blob['measure']])
+        query_db("INSERT INTO MEASUREMENTS (timestamp, type, deviceId, x, y, z, measurement) VALUES (?, ?, ?, ?, ?, ?);", 
+            args=[blob['timestamp'], jdata['type'], jdata['id'], blob['x'], blob['y'], blob['z'], blob['measurement']])
         get_db().commit()
     return 'OK'
 
@@ -86,7 +84,6 @@ def download():
 	_id = request.args.get('id')
 	try:
 		csv_file = export_csv(_id, sensors)
-		# return csv_file
 		return send_file(csv_file, as_attachment=True)
 	except sqlite3.OperationalError as e:
 		app.logger.warning(f'Exception {e} during creation query!')
