@@ -1,0 +1,4 @@
+measurements.db
+.venv
+__pycache__
+results/*
