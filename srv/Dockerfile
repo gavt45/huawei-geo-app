@@ -1,15 +1,9 @@
-FROM ubuntu:14.04
-USER root
+# FROM tiangolo/uwsgi-nginx-flask:python3.8
+# RUN apk --update add bash nano
+# ENV STATIC_URL /results
+# ENV STATIC_PATH /var/www/app/results
+# COPY ./requirements.txt /var/www/requirements.txt
+# RUN pip install -r /var/www/requirements.txt
+FROM tiangolo/uwsgi-nginx-flask:python3.8
 
-ENV \
-    HOME="/root"  \
-    
-WORKDIR  $HOME
-COPY . .
-RUN \
-	apt-get update && apt-get install && \
-	pip install flask 
-
-
-EXPOSE 80
-ENTRYPOINT ["python", "simple_server.py"]
+COPY . /app
