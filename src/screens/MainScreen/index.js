@@ -1,12 +1,12 @@
 import {Body, Button, Container, Content, Header, Icon, Left, Right, Title, Item, Input} from "native-base";
 import {StyleSheet, Text, View} from "react-native";
-import React,{useContext} from "react";
+import React, {useContext, Component} from "react";
 import AppContext from "../../components/AppContext";
 import {createDrawerNavigator} from "@react-navigation/drawer";
 import {NavigationContainer} from '@react-navigation/native';
 
 export default function MainScreen({navigation}) {
-    const appContext = useContext(AppContext);
+    let appContext = useContext(AppContext);
     return (
         <Container>
             <Header>
@@ -29,6 +29,11 @@ export default function MainScreen({navigation}) {
                 <Text>
                     Lorem ipsum...
                 </Text>
+                <Item regular>
+                    <Input>
+                        UUID: {appContext.uuid}
+                    </Input>
+                </Item>
                 <Button full rounded dark
                         style={{marginTop: 10}}
                         onPress={() => navigation.navigate("Sensors data")}>
@@ -41,7 +46,7 @@ export default function MainScreen({navigation}) {
                 </Item>
                 <Button full rounded success
                         style={{marginTop: 20}}
-                        onPress={() => appContext.subscribeToServices(appContext)}>
+                        onPress={() => appContext.startFgService(appContext)}>
                     <Text style={{
                         color: '#e3e3e3'
                     }}>START bg data collection</Text>
@@ -49,7 +54,7 @@ export default function MainScreen({navigation}) {
 
                 <Button full rounded warning
                         style={{marginTop: 10}}
-                        onPress={() => appContext.unsubscribe(appContext)}>
+                        onPress={() => appContext.stopFgService(appContext)}>
                     <Text style={{
                         color: '#e3e3e3'
                     }}>STOP bg data collection</Text>

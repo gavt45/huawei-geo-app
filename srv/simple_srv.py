@@ -64,7 +64,7 @@ def index():
     # print("data: ", request.data)
     jdata = json.loads(request.data)
     for blob in jdata['measurements']:
-        # print("Pushing ", [blob['timestamp'], 0, 'test', blob['x'], blob['y'], blob['z']])
+        # print("Pushing ", blob)
         query_db("INSERT INTO MEASUREMENTS (timestamp, type, deviceId, x, y, z, measurement) VALUES (?, ?, ?, ?, ?, ?, ?);", 
             args=[blob['timestamp'], 
             jdata['type'], 
@@ -72,7 +72,7 @@ def index():
             blob['x'] if 'x' in blob else None, 
             blob['y'] if 'y' in blob else None, 
             blob['z'] if 'z' in blob else None, 
-            blob['measurement']])
+            blob['measurement'] if 'measurement' in blob else None])
         get_db().commit()
     return 'OK'
 
