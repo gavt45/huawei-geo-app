@@ -32,22 +32,25 @@ def close_connection(exception):
         db.close()
 
 
-def export_csv(_id=None, sensors=None):
+def export_csv(_id: str='', sensors: str=''):
 	if sensors is not None:
-		sensors = re.findall('[A-Za-z]+', sensors)
+		sensors = re.findall('[A-Za-z]+', sensors.replace('%20', ','))
 		sensors = [''.join(['"', sensor, '"']) for sensor in sensors]
+		sensors.append('"gps"')
 	if _id is not None:
-		_id = re.findall('[A-Za-z0-9]+', _id)
+		_id = re.findall('[A-Za-z0-9-]+', _id.replace('%20', ''))
 		_id = [''.join(['"', i, '"']) for i in _id]
-	select = 'timestamp, deviceId, x, y, z, measurement' if sensors else '*'
+
 	where = ''.join([
-			' WHERE ', 
-			''.join(['deviceId IN (', ', '.join([i for i in _id]), ')']) if _id else '',
-			' AND ' if _id and sensors else '',
-			''.join(['type IN (', ', '.join([sensor for sensor in sensors]), ')']) if sensors else ''
+				' WHERE ', 
+				''.join(['deviceId IN (', ', '.join([i for i in _id]), ')']) if _id else '',
+				' AND ' if _id and sensors else '',
+				''.join(['type IN (', ', '.join([sensor for sensor in sensors]), ')']) if sensors else ''
 		]) if _id or sensors else ''
-	query = f"SELECT {select} FROM MEASUREMENTS{where};"
+
+	query = f"SELECT * FROM MEASUREMENTS{where};"
 	app.logger.debug(f'Generated query: {query}')
+	print(query)
 	cur = get_db().cursor()
 	cur.execute(query)
 	with open(csv_file:='results/latest_output.csv', 'w') as out_csv_file:
@@ -65,14 +68,15 @@ def index():
     jdata = json.loads(request.data)
     for blob in jdata['measurements']:
         # print("Pushing ", [blob['timestamp'], 0, 'test', blob['x'], blob['y'], blob['z']])
-        query_db("INSERT INTO MEASUREMENTS (timestamp, type, deviceId, x, y, z, measurement) VALUES (?, ?, ?, ?, ?, ?, ?);", 
-            args=[blob['timestamp'], 
-            jdata['type'], 
-            jdata['deviceId'], 
-            blob['x'] if 'x' in blob else None, 
-            blob['y'] if 'y' in blob else None, 
-            blob['z'] if 'z' in blob else None, 
-            blob['measurement']])
+        query_db("INSERT INTO MEASUREMENTS (timestamp, type, deviceId, x, y, z) VALUES (?, ?, ?, ?, ?, ?);", 
+            args=[
+            	blob['timestamp'], 
+            	jdata['type'], 
+            	jdata['deviceId'], 
+            	blob['x'] if 'x' in blob else None, 
+            	blob['y'] if 'y' in blob else None, 
+            	blob['z'] if 'z' in blob else None
+            ])
         get_db().commit()
     return 'OK'
 
@@ -97,4 +101,4 @@ def download():
 
 if __name__ == '__main__':
 	app.logger.setLevel(logging.DEBUG)
-	app.run(debug=False)
+	app.run(debug=True)
