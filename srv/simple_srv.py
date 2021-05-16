@@ -101,4 +101,4 @@ def download():
 
 if __name__ == '__main__':
 	app.logger.setLevel(logging.DEBUG)
-	app.run(debug=True)
+	app.run(debug=False)
